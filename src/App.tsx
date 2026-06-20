@@ -5,16 +5,25 @@ import { UserWarning } from './UserWarning';
 import { getTodos, USER_ID } from './api/todos';
 import { Todo } from './types/Todo';
 import classNames from 'classnames';
+import { TodoList } from './components/TodoList';
+import { Footer } from './components/Footer';
 
-type Filter = 'All' | 'Active' | 'Completed';
+export type FilterType = 'All' | 'Active' | 'Completed';
+
+enum ErrorMessages {
+  LOAD = 'Unable to load todos',
+  ADD = 'Unable to add a todo',
+  DELETE = 'Unable to delete a todo',
+  UPDATE = 'Unable to update a todo',
+}
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<Filter>('All');
+  const [filter, setFilter] = useState<FilterType>('All');
   const notCompletedCount = todos.filter(todo => !todo.completed).length;
 
-  function getFilteredTodos(allTodos: Todo[], status: Filter) {
+  function getFilteredTodos(allTodos: Todo[], status: FilterType) {
     switch (status) {
       case 'Active':
         return allTodos.filter(todo => !todo.completed);
@@ -34,7 +43,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     getTodos()
       .then(setTodos)
-      .catch(() => showErrorMessage('Unable to load todos'));
+      .catch(() => showErrorMessage(ErrorMessages.LOAD));
   }, []);
 
   if (!USER_ID) {
@@ -67,91 +76,12 @@ export const App: React.FC = () => {
 
         {todos.length > 0 && (
           <>
-            <section className="todoapp__main" data-cy="TodoList">
-              {visibleTodos.map(todo => (
-                <div
-                  key={todo.id}
-                  data-cy="Todo"
-                  className={`todo ${todo.completed ? 'completed' : ''}`}
-                >
-                  <label className="todo__status-label">
-                    <input
-                      data-cy="TodoStatus"
-                      type="checkbox"
-                      className="todo__status"
-                      checked={todo.completed}
-                    />
-                  </label>
-
-                  <span data-cy="TodoTitle" className="todo__title">
-                    {todo.title}
-                  </span>
-                  <button
-                    type="button"
-                    className="todo__remove"
-                    data-cy="TodoDelete"
-                  >
-                    ×
-                  </button>
-
-                  <div data-cy="TodoLoader" className="modal overlay">
-                    {/* eslint-disable-next-line max-len */}
-                    <div className="modal-background has-background-white-ter" />
-                    <div className="loader" />
-                  </div>
-                </div>
-              ))}
-            </section>
-            <footer className="todoapp__footer" data-cy="Footer">
-              <span className="todo-count" data-cy="TodosCounter">
-                {notCompletedCount} items left
-              </span>
-
-              {/* Active link should have the 'selected' class */}
-              <nav className="filter" data-cy="Filter">
-                <a
-                  href="#/"
-                  className={classNames('filter__link', {
-                    selected: filter === 'All',
-                  })}
-                  data-cy="FilterLinkAll"
-                  onClick={() => setFilter('All')}
-                >
-                  All
-                </a>
-
-                <a
-                  href="#/active"
-                  className={classNames('filter__link', {
-                    selected: filter === 'Active',
-                  })}
-                  data-cy="FilterLinkActive"
-                  onClick={() => setFilter('Active')}
-                >
-                  Active
-                </a>
-
-                <a
-                  href="#/completed"
-                  className={classNames('filter__link', {
-                    selected: filter === 'Completed',
-                  })}
-                  data-cy="FilterLinkCompleted"
-                  onClick={() => setFilter('Completed')}
-                >
-                  Completed
-                </a>
-              </nav>
-
-              {/* this button should be disabled if there are no completed todos */}
-              <button
-                type="button"
-                className="todoapp__clear-completed"
-                data-cy="ClearCompletedButton"
-              >
-                Clear completed
-              </button>
-            </footer>
+            <TodoList todos={visibleTodos} />
+            <Footer
+              notCompletedCount={notCompletedCount}
+              filter={filter}
+              setFilter={setFilter}
+            />
           </>
         )}
       </div>
