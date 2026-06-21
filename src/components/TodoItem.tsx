@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import { Todo } from '../types/Todo';
 
 type Props = {
@@ -9,7 +10,7 @@ export const TodoItem: React.FC<Props> = ({ todo }) => {
     <div
       key={todo.id}
       data-cy="Todo"
-      className={`todo ${todo.completed ? 'completed' : ''}`}
+      className={classNames('todo', { completed: todo.completed })}
     >
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control*/}
       <label className="todo__status-label">
